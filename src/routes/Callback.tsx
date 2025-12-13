@@ -22,6 +22,8 @@ export default function Callback() {
                 console.error("Auth Error", e);
                 navigate('/');
             });
+        } else {
+            navigate('/');
         }
     }, [navigate]);
 

@@ -5,7 +5,7 @@ import { useSpotifyPlayer } from './hooks/useSpotifyPlayer';
 import NowPlaying from './components/NowPlaying';
 import Controls from './components/Controls';
 import QueueList from './components/QueueList';
-import { ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline'; // Updated import
+import { ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline';
 
 function Login() {
   return (
@@ -26,11 +26,8 @@ function Player() {
   const currentTrack = playerState?.item || null;
   const isPlaying = playerState?.is_playing || false;
 
-  // Dynamic background gradient based on album art could be added here
-  // For now, simple dark gradient
-
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="relative h-screen w-screen overflow-hidden bg-gradient-to-br from-gray-900 to-black text-white">
       <button
         onClick={logout}
         className="absolute right-4 top-4 z-50 rounded-full bg-black/50 p-2 text-white/50 hover:bg-black hover:text-white"
@@ -39,18 +36,25 @@ function Player() {
         <ArrowRightEndOnRectangleIcon className="h-6 w-6" />
       </button>
 
-      {/* Main Grid Layout - Landscape optimized */}
-      <div className="grid h-full w-full grid-cols-1 md:grid-cols-2">
+      {/* Force Landscape Layout: 
+          On landscape orientation (regardless of width), use 2 columns.
+          On portrait, stack them.
+      */}
+      <div className="flex h-full w-full flex-col landscape:flex-row">
 
-        {/* Left: Now Playing (Large Art) */}
-        <div className="flex flex-col justify-center p-4">
-          <NowPlaying track={currentTrack} />
-          <Controls isPlaying={isPlaying} onAction={refreshState} />
+        {/* Left (or Top): Now Playing & Controls */}
+        <div className="flex flex-1 flex-col justify-center p-4 landscape:w-1/2 landscape:border-r landscape:border-white/5">
+          <div className="flex h-full flex-col justify-center">
+            <NowPlaying track={currentTrack} />
+            <Controls isPlaying={isPlaying} onAction={refreshState} />
+          </div>
         </div>
 
-        {/* Right: Queue / Details */}
-        <div className="hidden h-full flex-col justify-center p-8 md:flex">
-          <h1 className="mb-6 text-3xl font-bold tracking-tight">Up Next</h1>
+        {/* Right (or Bottom): Queue */}
+        {/* In portrait, hide queue if screen is too small, or allow scroll. 
+            In landscape, show it on the right. */}
+        <div className="hidden h-full flex-1 flex-col justify-center p-8 landscape:flex landscape:w-1/2">
+          <h1 className="mb-6 text-2xl font-bold tracking-tight text-white/80">Up Next</h1>
           <QueueList queue={queue} />
         </div>
 
@@ -66,7 +70,6 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/callback" element={<Callback />} />
         <Route path="/player" element={<Player />} />
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

@@ -8,9 +8,10 @@ interface Props {
 export default function NowPlaying({ track }: Props) {
     if (!track) {
         return (
-            <div className="flex h-full w-full flex-col items-center justify-center text-gray-400">
-                <p>No music playing</p>
-                <p className="text-sm">Open Spotify on a device to start listening.</p>
+            <div className="flex h-full w-full flex-col items-center justify-center text-center text-gray-400">
+                <div className="mb-4 h-48 w-48 animate-pulse rounded-2xl bg-white/5"></div>
+                <p className="text-xl font-semibold text-white">No Active Device</p>
+                <p className="mt-2 text-sm text-gray-400">Open Spotify on one of your devices<br />and start playing music.</p>
             </div>
         );
     }
