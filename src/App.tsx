@@ -2,12 +2,13 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import Callback from './routes/Callback';
 import { redirectToAuthCodeFlow, logout, getStoredToken } from './services/auth';
 import { useSpotifyPlayer } from './hooks/useSpotifyPlayer';
+import { useNotifications } from './hooks/useNotifications';
 import { next, previous } from './services/spotify';
 import NowPlaying from './components/NowPlaying';
 import Controls from './components/Controls';
 import QueueList from './components/QueueList';
-import { ArrowRightEndOnRectangleIcon, ArrowsPointingOutIcon, ArrowsPointingInIcon } from '@heroicons/react/24/outline';
-import { useState, useEffect } from 'react';
+import { ArrowRightEndOnRectangleIcon, ArrowsPointingOutIcon, ArrowsPointingInIcon, BellIcon, BellSlashIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect, useRef } from 'react';
 import { motion, type PanInfo } from 'framer-motion';
 
 function Login() {
@@ -35,9 +36,23 @@ function Login() {
 
 function Player() {
   const { playerState, queue, refreshState } = useSpotifyPlayer();
+  const { isEnabled: isNotifEnabled, toggleNotifications, sendNotification } = useNotifications();
+
   const currentTrack = playerState?.item || null;
   const isPlaying = playerState?.is_playing || false;
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const lastTrackId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (currentTrack && currentTrack.id !== lastTrackId.current) {
+      lastTrackId.current = currentTrack.id;
+      // Only notify if playing
+      if (isPlaying) {
+        sendNotification(currentTrack);
+      }
+    }
+  }, [currentTrack, isPlaying, sendNotification]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -63,6 +78,13 @@ function Player() {
   return (
     <div className="relative h-[100dvh] w-screen overflow-hidden bg-gradient-to-br from-gray-900 to-black text-white">
       <div className="absolute right-4 top-4 z-50 flex gap-2">
+        <button
+          onClick={toggleNotifications}
+          className="rounded-full bg-black/50 p-2 text-white/50 hover:bg-black hover:text-white"
+          title={isNotifEnabled ? "Disable Notifications" : "Enable Notifications"}
+        >
+          {isNotifEnabled ? <BellIcon className="h-6 w-6" /> : <BellSlashIcon className="h-6 w-6" />}
+        </button>
         <button
           onClick={toggleFullscreen}
           className="rounded-full bg-black/50 p-2 text-white/50 hover:bg-black hover:text-white"
