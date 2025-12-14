@@ -3,9 +3,10 @@ import { motion } from 'framer-motion';
 
 interface Props {
     track: Track | null;
+    onToggleFullscreen?: () => void;
 }
 
-export default function NowPlaying({ track }: Props) {
+export default function NowPlaying({ track, onToggleFullscreen }: Props) {
     if (!track) {
         return (
             <div className="flex h-full w-full flex-col items-center justify-center text-center text-gray-400">
@@ -24,9 +25,16 @@ export default function NowPlaying({ track }: Props) {
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 key={track.id}
-                className="relative aspect-square w-full max-w-[50vh] overflow-hidden rounded-2xl shadow-2xl"
+                className="relative aspect-square w-full max-w-[50vh] cursor-pointer overflow-hidden rounded-2xl shadow-2xl transition hover:scale-105 active:scale-95"
+                onClick={onToggleFullscreen}
+                whileTap={{ scale: 0.95 }}
             >
                 <img src={image} alt={track.name} className="h-full w-full object-cover" />
+
+                {/* Overlay hint */}
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition hover:bg-black/20">
+                    <span className="opacity-0 transition group-hover:opacity-100"></span>
+                </div>
             </motion.div>
 
             <div className="mt-8 text-center">

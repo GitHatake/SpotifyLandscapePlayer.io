@@ -1,14 +1,25 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Callback from './routes/Callback';
-import { redirectToAuthCodeFlow, logout } from './services/auth';
+import { redirectToAuthCodeFlow, logout, getStoredToken } from './services/auth';
 import { useSpotifyPlayer } from './hooks/useSpotifyPlayer';
+import { next, previous } from './services/spotify';
 import NowPlaying from './components/NowPlaying';
 import Controls from './components/Controls';
 import QueueList from './components/QueueList';
 import { ArrowRightEndOnRectangleIcon, ArrowsPointingOutIcon, ArrowsPointingInIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { motion, type PanInfo } from 'framer-motion';
 
 function Login() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = getStoredToken();
+    if (token) {
+      navigate('/player');
+    }
+  }, [navigate]);
+
   return (
     <div className="flex h-[100dvh] w-screen flex-col items-center justify-center bg-zinc-900 text-white">
       <h1 className="mb-8 text-4xl font-bold tracking-tighter text-green-500">Spotify Landscape</h1>
@@ -33,6 +44,19 @@ function Player() {
       document.documentElement.requestFullscreen().then(() => setIsFullscreen(true));
     } else {
       document.exitFullscreen().then(() => setIsFullscreen(false));
+    }
+  };
+
+  const handleDragEnd = async (_: any, info: PanInfo) => {
+    const threshold = 50;
+    if (info.offset.x < -threshold) {
+      // Swipe Left -> Next
+      await next();
+      refreshState();
+    } else if (info.offset.x > threshold) {
+      // Swipe Right -> Previous
+      await previous();
+      refreshState();
     }
   };
 
@@ -63,10 +87,17 @@ function Player() {
 
         {/* Left (or Top): Now Playing & Controls */}
         <div className="flex flex-1 flex-col justify-center p-4 landscape:w-1/2 landscape:border-r landscape:border-white/5">
-          <div className="flex h-full flex-col justify-center">
-            <NowPlaying track={currentTrack} />
+          <motion.div
+            className="flex h-full flex-col justify-center"
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={handleDragEnd}
+          >
+            <NowPlaying track={currentTrack} onToggleFullscreen={toggleFullscreen} />
             <Controls isPlaying={isPlaying} onAction={refreshState} />
-          </div>
+            <p className="mt-4 text-center text-xs text-white/30">Swipe to skip • Tap art to fullscreen</p>
+          </motion.div>
         </div>
 
         {/* Right (or Bottom): Queue */}
