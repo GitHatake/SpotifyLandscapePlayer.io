@@ -62,6 +62,55 @@ function Player() {
     }
   };
 
+  /* Wake Lock Logic */
+  const wakeLock = useRef<WakeLockSentinel | null>(null);
+
+  useEffect(() => {
+    const requestWakeLock = async () => {
+      if ('wakeLock' in navigator && isFullscreen) {
+        try {
+          const lock = await navigator.wakeLock.request('screen');
+          wakeLock.current = lock;
+          console.log('Wake Lock active');
+
+          lock.addEventListener('release', () => {
+            console.log('Wake Lock released');
+            wakeLock.current = null;
+          });
+        } catch (err) {
+          console.error("Wake Lock failed:", err);
+        }
+      }
+    };
+
+    const releaseWakeLock = async () => {
+      if (wakeLock.current) {
+        await wakeLock.current.release();
+        wakeLock.current = null;
+      }
+    };
+
+    if (isFullscreen) {
+      requestWakeLock();
+    } else {
+      releaseWakeLock();
+    }
+
+    // Capture functionality for re-acquiring lock on visibility change
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isFullscreen) {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      releaseWakeLock();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isFullscreen]);
+
   const handleDragEnd = async (_: any, info: PanInfo) => {
     const threshold = 50;
     if (info.offset.x < -threshold) {
