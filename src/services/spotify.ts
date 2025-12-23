@@ -39,7 +39,10 @@ export type Track = {
     id: string;
     name: string;
     artists: { name: string }[];
-    album: { images: { url: string }[] };
+    album: {
+        name: string;
+        images: { url: string }[];
+    };
     duration_ms: number;
 };
 

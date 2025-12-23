@@ -34,23 +34,45 @@ function Login() {
   );
 }
 
+import { fetchLyrics, type LyricsData } from './services/lyrics';
+import LyricsView from './components/LyricsView';
+
 function Player() {
   const { playerState, queue, refreshState } = useSpotifyPlayer();
   const { isEnabled: isNotifEnabled, toggleNotifications, sendNotification } = useNotifications();
 
   const currentTrack = playerState?.item || null;
   const isPlaying = playerState?.is_playing || false;
+  const progressMs = playerState?.progress_ms || 0;
+
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'queue' | 'lyrics'>('queue');
+  const [lyricsData, setLyricsData] = useState<LyricsData | null>(null);
 
   const lastTrackId = useRef<string | null>(null);
 
   useEffect(() => {
     if (currentTrack && currentTrack.id !== lastTrackId.current) {
       lastTrackId.current = currentTrack.id;
-      // Only notify if playing
+
+      // Notify
       if (isPlaying) {
         sendNotification(currentTrack);
       }
+
+      // Fetch Lyrics
+      // album object in Track only has images in current type definition, but real Spotify API returns name.
+      // Assuming the Track type needs update or casting.
+      // Let's use optional chaining or cast if needed, but for now I'll just pass empty string if missing to avoid runtime crash,
+      // although logically it should be there.
+      // Wait, looking at spotify.ts: export type Track = { ... album: { images: ... } ... }
+      // It's missing name! I should update the Track type.
+
+      // For now, let's fix the call site assuming I will fix the type in spotify.ts
+      const albumName = (currentTrack.album as any).name || "";
+
+      fetchLyrics(currentTrack.name, currentTrack.artists[0].name, albumName, currentTrack.duration_ms)
+        .then(data => setLyricsData(data));
     }
   }, [currentTrack, isPlaying, sendNotification]);
 
@@ -171,12 +193,36 @@ function Player() {
           </motion.div>
         </div>
 
-        {/* Right (or Bottom): Queue */}
-        {/* In portrait, hide queue if screen is too small, or allow scroll.
-            In landscape, show it on the right. */}
-        <div className="hidden h-full flex-1 flex-col justify-center p-8 landscape:flex landscape:w-1/2">
-          <h1 className="mb-6 text-2xl font-bold tracking-tight text-white/80">Up Next</h1>
-          <QueueList queue={queue} />
+        {/* Right Side: Tabbed Content */}
+        <div className="hidden h-full flex-1 flex-col p-8 landscape:flex landscape:w-1/2">
+
+          {/* Tabs */}
+          <div className="mb-6 flex space-x-6">
+            <button
+              onClick={() => setActiveTab('queue')}
+              className={`text-2xl font-bold tracking-tight transition-colors ${activeTab === 'queue' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+            >
+              Up Next
+            </button>
+            <button
+              onClick={() => setActiveTab('lyrics')}
+              className={`text-2xl font-bold tracking-tight transition-colors ${activeTab === 'lyrics' ? 'text-white' : 'text-white/40 hover:text-white/70'}`}
+            >
+              Lyrics
+            </button>
+          </div>
+
+          <div className="relative flex-1 overflow-hidden">
+            {activeTab === 'queue' ? (
+              <QueueList queue={queue} />
+            ) : (
+              <LyricsView
+                lyrics={lyricsData?.syncedLyrics || null}
+                plainLyrics={lyricsData?.plainLogs || null}
+                currentTime={progressMs / 1000}
+              />
+            )}
+          </div>
         </div>
 
       </div>
