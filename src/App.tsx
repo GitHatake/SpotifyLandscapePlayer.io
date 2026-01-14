@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Callback from './routes/Callback';
-import { redirectToAuthCodeFlow, logout, getStoredToken } from './services/auth';
+import { redirectToAuthCodeFlow, logout, hasValidCredentials } from './services/auth';
 import { useSpotifyPlayer } from './hooks/useSpotifyPlayer';
 import { useNotifications } from './hooks/useNotifications';
 import { next, previous } from './services/spotify';
@@ -15,8 +15,8 @@ function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = getStoredToken();
-    if (token) {
+    // Check if we have any valid credentials (token or refresh token)
+    if (hasValidCredentials()) {
       navigate('/player');
     }
   }, [navigate]);

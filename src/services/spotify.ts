@@ -1,10 +1,13 @@
-import { getStoredToken, refreshAccessToken, logout } from './auth';
+import { getValidToken, refreshAccessToken, logout } from './auth';
 
 const BASE_URL = 'https://api.spotify.com/v1';
 
 async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
-    let token = getStoredToken();
-    if (!token) throw new Error("No token");
+    // Use getValidToken which handles proactive refresh
+    let token = await getValidToken();
+    if (!token) {
+        throw new Error("No valid token");
+    }
 
     let response = await fetch(`${BASE_URL}${endpoint}`, {
         ...options,
@@ -14,8 +17,8 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
         }
     });
 
+    // If still 401, try one more refresh
     if (response.status === 401) {
-        // Token expired
         token = await refreshAccessToken();
         if (!token) {
             logout();
