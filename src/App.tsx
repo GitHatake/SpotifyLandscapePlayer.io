@@ -49,6 +49,21 @@ function Player() {
   const [activeTab, setActiveTab] = useState<'queue' | 'lyrics'>('queue');
   const [lyricsData, setLyricsData] = useState<LyricsData | null>(null);
 
+  // Lock orientation to landscape on mount
+  useEffect(() => {
+    const lockOrientation = async () => {
+      try {
+        // This API requires fullscreen on most browsers
+        if (screen.orientation && 'lock' in screen.orientation) {
+          await (screen.orientation as any).lock('landscape');
+        }
+      } catch (err) {
+        console.log('Orientation lock not supported or denied:', err);
+      }
+    };
+    lockOrientation();
+  }, []);
+
   const lastTrackId = useRef<string | null>(null);
 
   useEffect(() => {

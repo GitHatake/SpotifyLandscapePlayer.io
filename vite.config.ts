@@ -15,6 +15,7 @@ export default defineConfig({
         short_name: 'SpotifyPlayer',
         start_url: '.',
         display: 'standalone',
+        orientation: 'landscape',
         background_color: '#121212',
         theme_color: '#121212',
         description: 'Immersive Spotify Landscape Player',
