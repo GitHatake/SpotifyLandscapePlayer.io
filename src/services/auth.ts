@@ -84,6 +84,7 @@ export async function refreshAccessToken(): Promise<string | null> {
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
     if (!refreshToken) {
         console.log("No refresh token available");
+        logout(); // Force login if we have no way to refresh
         return null;
     }
 
@@ -101,11 +102,16 @@ export async function refreshAccessToken(): Promise<string | null> {
 
         if (!result.ok) {
             console.error("Token refresh failed:", result.status);
-            // Don't immediately logout - the token might still work
+            // If the refresh token is invalid (400), we must log out
+            if (result.status === 400) {
+                console.warn("Refresh token invalid, logging out...");
+                logout();
+            }
             return null;
         }
 
-        const { access_token, refresh_token: new_refresh_token, expires_in } = await result.json();
+        const data = await result.json();
+        const { access_token, refresh_token: new_refresh_token, expires_in } = data;
 
         if (access_token) {
             saveTokens(access_token, new_refresh_token, expires_in);
@@ -124,10 +130,10 @@ export async function refreshAccessToken(): Promise<string | null> {
  */
 export async function getValidToken(): Promise<string | null> {
     const token = localStorage.getItem(TOKEN_KEY);
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
     const expirationStr = localStorage.getItem(EXPIRATION_KEY);
 
-    if (!token) {
-        // No token at all - need to login
+    if (!token && !refreshToken) {
         return null;
     }
 
@@ -135,19 +141,19 @@ export async function getValidToken(): Promise<string | null> {
         const expiration = parseInt(expirationStr, 10);
         const now = Date.now();
 
-        // If token will expire soon, refresh proactively
+        // If token expired or expiring soon, refresh
         if (now >= expiration - REFRESH_BUFFER_MS) {
-            console.log("Token expiring soon, refreshing...");
+            console.log("Token expiring or expired, refreshing...");
             const newToken = await refreshAccessToken();
             if (newToken) {
                 return newToken;
             }
-            // If refresh failed but token not yet expired, still return old token
-            if (now < expiration) {
-                return token;
+            
+            // If refresh failed and token is definitely expired, clear and return null
+            if (now >= expiration) {
+                console.error("Token expired and refresh failed.");
+                return null;
             }
-            // Token truly expired and refresh failed
-            return null;
         }
     }
 
@@ -163,14 +169,24 @@ export function getStoredToken(): string | null {
 }
 
 /**
- * Check if we have valid credentials stored (token exists and not expired).
+ * Check if we have valid credentials stored.
  */
 export function hasValidCredentials(): boolean {
     const token = localStorage.getItem(TOKEN_KEY);
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    const expirationStr = localStorage.getItem(EXPIRATION_KEY);
 
-    // If we have a refresh token, we can likely recover
-    return !!(token || refreshToken);
+    if (!token && !refreshToken) return false;
+
+    // If we have a token and it's not expired yet, we're good
+    if (token && expirationStr) {
+        const expiration = parseInt(expirationStr, 10);
+        if (Date.now() < expiration) return true;
+    }
+
+    // If token is expired but we have a refresh token, we consider it valid for the initial check
+    // as it will be refreshed on the first API call.
+    return !!refreshToken;
 }
 
 export function logout() {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { fetchPlayerState, fetchQueue, type PlayerState, type Track } from '../services/spotify';
-import { getStoredToken } from '../services/auth';
+import { getValidToken } from '../services/auth';
 
 export function useSpotifyPlayer() {
     const [playerState, setPlayerState] = useState<PlayerState | null>(null);
@@ -12,27 +12,34 @@ export function useSpotifyPlayer() {
     const progressInterval = useRef<number | null>(null);
 
     const fetchState = useCallback(async () => {
-        const token = getStoredToken();
-        if (!token) return;
-
-        // Fetch everything in parallel
-        const [player, q] = await Promise.all([
-            fetchPlayerState(),
-            fetchQueue()
-        ]);
-
-        if (player) {
-            setPlayerState(player);
-            // Sync local progress
-            if (player.is_playing) {
-                setLocalProgress(player.progress_ms);
-                lastFetchTime.current = Date.now();
-            } else {
-                setLocalProgress(player.progress_ms);
-            }
+        const token = await getValidToken();
+        if (!token) {
+            console.log("No valid token found in useSpotifyPlayer");
+            return;
         }
 
-        if (q) setQueue(q.queue);
+        // Fetch everything in parallel
+        try {
+            const [player, q] = await Promise.all([
+                fetchPlayerState(),
+                fetchQueue()
+            ]);
+
+            if (player) {
+                setPlayerState(player);
+                // Sync local progress
+                if (player.is_playing) {
+                    setLocalProgress(player.progress_ms);
+                    lastFetchTime.current = Date.now();
+                } else {
+                    setLocalProgress(player.progress_ms);
+                }
+            }
+
+            if (q) setQueue(q.queue);
+        } catch (e) {
+            console.error("Fetch state error:", e);
+        }
     }, []);
 
     // Local Timer for smooth lyrics
