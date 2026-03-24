@@ -161,8 +161,13 @@ function Player() {
     }
   };
 
+  // Force scroll reset when fullscreen state changes
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [isFullscreen]);
+
   return (
-    <div className="relative h-[100dvh] w-screen overflow-hidden bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-gray-900 to-black text-white overscroll-none">
       <div className="absolute right-4 top-4 z-50 flex gap-2">
         <button
           onClick={toggleNotifications}
