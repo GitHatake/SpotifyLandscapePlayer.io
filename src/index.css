@@ -4,9 +4,6 @@
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  overflow: hidden;
-  height: 100%;
-  width: 100%;
 }
 
 html, body, #root {
@@ -14,13 +11,16 @@ html, body, #root {
   padding: 0;
   height: 100%;
   width: 100%;
-  overflow: hidden;
   background-color: #121212; /* Spotify Dark */
   color: white;
-  /* Prevent browser bounce/overscroll */
-  overscroll-behavior: none;
-  /* Ensure the container is exactly the viewport size */
-  position: fixed;
-  top: 0;
-  left: 0;
+  /* Use touch-action to prevent browser bounce while allowing swipe-to-refresh if needed */
+  touch-action: pan-y;
+}
+
+/* Ensure the app fits within the safe area of mobile devices (Pixel 9a, iPhone, etc.) */
+#root {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }

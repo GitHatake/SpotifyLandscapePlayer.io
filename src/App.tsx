@@ -167,7 +167,7 @@ function Player() {
   }, [isFullscreen]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-gradient-to-br from-gray-900 to-black text-white overscroll-none">
+    <div className="relative min-h-full w-full overflow-hidden bg-gradient-to-br from-gray-900 to-black text-white">
       <div className="absolute right-4 top-4 z-50 flex gap-2">
         <button
           onClick={toggleNotifications}
@@ -196,10 +196,10 @@ function Player() {
           On landscape orientation (regardless of width), use 2 columns.
           On portrait, stack them.
       */}
-      <div className="flex h-full w-full flex-col landscape:flex-row">
+      <div className="flex min-h-full w-full flex-col landscape:flex-row">
 
         {/* Left (or Top): Now Playing & Controls */}
-        <div className="flex flex-1 flex-col justify-center overflow-hidden p-4 landscape:w-1/2 landscape:border-r landscape:border-white/5 landscape:p-2">
+        <div className="flex flex-1 flex-col items-center justify-center overflow-hidden p-4 landscape:w-1/2 landscape:border-r landscape:border-white/5 landscape:p-2">
           <motion.div
             className="flex h-full flex-col items-center justify-center"
             drag="x"
