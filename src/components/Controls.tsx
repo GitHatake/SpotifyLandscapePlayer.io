@@ -13,30 +13,30 @@ export default function Controls({ isPlaying, onAction }: Props) {
     }
 
     return (
-        <div className="flex items-center justify-center gap-8 py-6">
+        <div className="flex items-center justify-center gap-4 py-2 md:gap-8 md:py-6">
             <button
                 onClick={() => handleAction(previous)}
-                className="rounded-full p-4 text-white transition hover:bg-white/10"
+                className="rounded-full p-2 text-white transition hover:bg-white/10 md:p-4"
             >
-                <BackwardIcon className="h-10 w-10" />
+                <BackwardIcon className="h-8 w-8 md:h-10 md:w-10" />
             </button>
 
             <button
                 onClick={() => handleAction(isPlaying ? pause : play)}
-                className="scale-100 transform rounded-full bg-green-500 p-6 text-black shadow-lg transition hover:scale-110 hover:bg-green-400 active:scale-95"
+                className="scale-100 transform rounded-full bg-green-500 p-4 text-black shadow-lg transition hover:scale-110 hover:bg-green-400 active:scale-95 md:p-6"
             >
                 {isPlaying ? (
-                    <PauseIcon className="h-12 w-12" />
+                    <PauseIcon className="h-10 w-10 md:h-12 md:w-12" />
                 ) : (
-                    <PlayIcon className="h-12 w-12" />
+                    <PlayIcon className="h-10 w-10 md:h-12 md:w-12" />
                 )}
             </button>
 
             <button
                 onClick={() => handleAction(next)}
-                className="rounded-full p-4 text-white transition hover:bg-white/10"
+                className="rounded-full p-2 text-white transition hover:bg-white/10 md:p-4"
             >
-                <ForwardIcon className="h-10 w-10" />
+                <ForwardIcon className="h-8 w-8 md:h-10 md:w-10" />
             </button>
         </div>
     );

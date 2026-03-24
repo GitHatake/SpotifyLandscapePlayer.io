@@ -194,9 +194,9 @@ function Player() {
       <div className="flex h-full w-full flex-col landscape:flex-row">
 
         {/* Left (or Top): Now Playing & Controls */}
-        <div className="flex flex-1 flex-col justify-center p-4 landscape:w-1/2 landscape:border-r landscape:border-white/5">
+        <div className="flex flex-1 flex-col justify-center overflow-hidden p-4 landscape:w-1/2 landscape:border-r landscape:border-white/5 landscape:p-2">
           <motion.div
-            className="flex h-full flex-col justify-center"
+            className="flex h-full flex-col items-center justify-center"
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.2}
@@ -204,12 +204,12 @@ function Player() {
           >
             <NowPlaying track={currentTrack} onToggleFullscreen={toggleFullscreen} />
             <Controls isPlaying={isPlaying} onAction={refreshState} />
-            <p className="mt-4 text-center text-xs text-white/30">Swipe to skip • Tap art to fullscreen</p>
+            <p className="mt-2 text-center text-[10px] text-white/30 md:mt-4 md:text-xs">Swipe to skip • Tap art to fullscreen</p>
           </motion.div>
         </div>
 
         {/* Right Side: Tabbed Content */}
-        <div className="hidden h-full flex-1 flex-col p-8 landscape:flex landscape:w-1/2">
+        <div className="hidden h-full flex-1 flex-col p-4 landscape:flex landscape:w-1/2 md:p-8">
 
           {/* Tabs */}
           <div className="mb-6 flex space-x-6">
