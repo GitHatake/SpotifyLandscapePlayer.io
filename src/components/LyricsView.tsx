@@ -6,9 +6,10 @@ interface Props {
     lyrics: LrcLine[] | null;
     plainLyrics: string | null;
     currentTime: number; // in seconds
+    onRetry?: () => void;
 }
 
-export default function LyricsView({ lyrics, plainLyrics, currentTime }: Props) {
+export default function LyricsView({ lyrics, plainLyrics, currentTime, onRetry }: Props) {
     const activeIndexRef = useRef<number>(-1);
     const scrollRef = useRef<HTMLDivElement>(null);
     const [activeIndex, setActiveIndex] = useState(-1);
@@ -40,8 +41,19 @@ export default function LyricsView({ lyrics, plainLyrics, currentTime }: Props) 
 
     if (!lyrics && !plainLyrics) {
         return (
-            <div className="flex h-full w-full items-center justify-center text-gray-500">
-                <p>No lyrics found</p>
+            <div
+                className="flex h-full w-full cursor-pointer flex-col items-center justify-center space-y-4 text-gray-500 transition-colors hover:text-white"
+                onClick={onRetry}
+            >
+                <div className="text-center">
+                    <p className="text-xl font-semibold">No lyrics found</p>
+                    <p className="mt-2 text-sm opacity-60">Try searching again with cleaned names</p>
+                </div>
+                <button
+                    className="rounded-full border border-white/20 px-6 py-2 text-sm font-medium hover:bg-white/10"
+                >
+                    Retry Search
+                </button>
             </div>
         );
     }

@@ -8,7 +8,7 @@ import NowPlaying from './components/NowPlaying';
 import Controls from './components/Controls';
 import QueueList from './components/QueueList';
 import { ArrowRightEndOnRectangleIcon, ArrowsPointingOutIcon, ArrowsPointingInIcon, BellIcon, BellSlashIcon } from '@heroicons/react/24/outline';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, type PanInfo } from 'framer-motion';
 
 function Login() {
@@ -49,6 +49,13 @@ function Player() {
   const [activeTab, setActiveTab] = useState<'queue' | 'lyrics'>('queue');
   const [lyricsData, setLyricsData] = useState<LyricsData | null>(null);
 
+  const updateLyrics = useCallback(async (track: any) => {
+    if (!track) return;
+    const albumName = (track.album as any).name || "";
+    const data = await fetchLyrics(track.name, track.artists[0].name, albumName, track.duration_ms);
+    setLyricsData(data);
+  }, []);
+
   // Lock orientation to landscape on mount
   useEffect(() => {
     const lockOrientation = async () => {
@@ -76,20 +83,9 @@ function Player() {
       }
 
       // Fetch Lyrics
-      // album object in Track only has images in current type definition, but real Spotify API returns name.
-      // Assuming the Track type needs update or casting.
-      // Let's use optional chaining or cast if needed, but for now I'll just pass empty string if missing to avoid runtime crash,
-      // although logically it should be there.
-      // Wait, looking at spotify.ts: export type Track = { ... album: { images: ... } ... }
-      // It's missing name! I should update the Track type.
-
-      // For now, let's fix the call site assuming I will fix the type in spotify.ts
-      const albumName = (currentTrack.album as any).name || "";
-
-      fetchLyrics(currentTrack.name, currentTrack.artists[0].name, albumName, currentTrack.duration_ms)
-        .then(data => setLyricsData(data));
+      updateLyrics(currentTrack);
     }
-  }, [currentTrack, isPlaying, sendNotification]);
+  }, [currentTrack, isPlaying, sendNotification, updateLyrics]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -240,6 +236,7 @@ function Player() {
                 lyrics={lyricsData?.syncedLyrics || null}
                 plainLyrics={lyricsData?.plainLogs || null}
                 currentTime={progressMs / 1000}
+                onRetry={() => currentTrack && updateLyrics(currentTrack)}
               />
             )}
           </div>
