@@ -11,13 +11,15 @@ html, body, #root {
   padding: 0;
   height: 100%;
   width: 100%;
+  overflow: hidden; /* Disable scrolling completely */
   background-color: #121212; /* Spotify Dark */
   color: white;
-  /* Use touch-action to prevent browser bounce while allowing swipe-to-refresh if needed */
-  touch-action: pan-y;
+  /* Prevent browser bounce/overscroll and scroll-to-refresh */
+  overscroll-behavior: none;
+  touch-action: none; /* Disable all browser-native gestures except specific ones handled by JS */
 }
 
-/* Ensure the app fits within the safe area of mobile devices (Pixel 9a, iPhone, etc.) */
+/* Safe area padding for notches/cameras */
 #root {
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
